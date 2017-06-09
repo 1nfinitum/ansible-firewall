@@ -1,2 +1,52 @@
 ---
-# tasks file for firewall
+- name: Ensuring iptables is installed.
+  apt:
+    name: iptables
+    update_cache: yes
+    cache_valid_time: 43200
+    state: installed
+
+- name: Flushing iptables whithin the first playbook run.
+  command: >
+    iptables -F
+    creates=/etc/firewall.bash
+  register: firstrun
+
+- name: Checking if ufw package is installed.
+  shell: service ufw status
+  args:
+    warn: no
+  register: ufw_installed
+  ignore_errors: true
+  changed_when: false
+  when: firstrun|changed
+
+- name: Disabling ufw if installed.
+  service:
+    name: ufw
+    state: stopped
+    enabled: no
+  when: firstrun|changed and ufw_installed.rc == 0
+
+- name: Copying firewall script into place.
+  template:
+    src: firewall.bash.j2
+    dest: /etc/firewall.bash
+    owner: root
+    group: root
+    mode: 0744
+  notify: restart firewall
+
+- name: Copying systemd unit file for service creation.
+  template: 
+    src: firewall.service.j2
+    dest: /etc/systemd/system/firewall.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Ensuring 'firewall' service is enabled and will start on boot.
+  service:
+    name: firewall
+    state: started
+    enabled: yes

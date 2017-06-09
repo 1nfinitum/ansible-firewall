@@ -1,38 +1,66 @@
-Role Name
+Ansible Role: Firewall
 =========
+[![Build Status](https://travis-ci.org/tenequm/ansible-firewall.svg?branch=master)](https://travis-ci.org/tenequm/ansible-firewall)
 
-A brief description of the role goes here.
+This role applies basic firewall configurations for Ubuntu 16.04 LTS and disables its `ufw` service.
+
+After applying this role, you will have `firewall` init service, that can be controlled with the standard `service firewall [start|stop|restart|status]` commands.
 
 Requirements
 ------------
-
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+This role requires only root access for accomplishing its operations, so either run it in a playbook with a global `become: yes`, or invoke the role in your playbook like:
+```
+- hosts: localhost
+  become: yes
+  roles:
+    - role: tenequm.firewall
+```
 
 Role Variables
 --------------
+List of open TCP/UDP ports for incoming traffic:
+```
+firewall_allowed_tcp_ports:
+  - 22
+  - 80
+  …
+firewall_allowed_udp_ports: []
+```
+List of forwarded TCP/UDP ports:
+```
+firewall_forwarded_tcp_ports:
+  - { src: "22", dest: "2222" }
+  - { src: "80", dest: "8080" }
+firewall_forwarded_udp_ports: []
+```
+Additional rules that can be added to the firewall in its standard CLI command format (e.g. iptables [rule] / ip6tables [rule]):
+```
+firewall_additional_rules: []
+firewall_ip6_additional_rules: []
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+For example:
 
-Dependencies
-------------
+# Allow only the IP 173.123.12.55 to access port 6989.
+firewall_additional_rules:
+  - "iptables -A INPUT -p tcp --dport 6989 -s 173.123.12.55 -j ACCEPT"
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+# Allow only the IPv6 2001:db8:a0b:12f0::1 to access port 3306.
+firewall_additional_rules:
+  - "ip6tables -A INPUT -p tcp --dport 3306 -s 2001:db8:a0b:12f0::1 -j ACCEPT"
+```
 
 Example Playbook
 ----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
+```
+- hosts: localhost
+  become: yes
+  roles:
+    - { role: tenequm.firewall }
+```
 License
 -------
-
-BSD
+MIT
 
 Author Information
 ------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+This role was created in 2017 by [Mykhaylo Kolesnik](http://github.com/tenequm).
