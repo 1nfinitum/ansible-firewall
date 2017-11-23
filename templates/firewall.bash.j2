@@ -65,7 +65,7 @@ iptables -A INPUT -m limit --limit 15/minute -j LOG --log-level 7 --log-prefix "
 {% endif %}
 
 # Drop all other traffic.
-iptables -A INPUT -j DROP
+iptables -A INPUT{{ firewall_drop_only_pub|ternary(' -i ' ~ firewall_pub_interface, none) }} -j DROP
 
 
 # Configure IPv6 if ip6tables is present.
@@ -108,6 +108,6 @@ if [ -x "$(which ip6tables 2>/dev/null)" ]; then
   {% endif %}
 
   # Drop all other traffic.
-  ip6tables -A INPUT -j DROP
+  ip6tables -A INPUT{{ firewall_drop_only_pub|ternary(' -i ' ~ firewall_pub_interface, none) }} -j DROP
 
 fi

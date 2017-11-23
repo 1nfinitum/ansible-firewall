@@ -1,7 +1,9 @@
 ---
+firewall_drop_only_pub: true
+firewall_pub_interface: "{{ ansible_default_ipv4.interface }}"
 firewall_allowed_tcp_ports:
-  - "22"
   - "80"
+  - "443"
 firewall_allowed_udp_ports: []
 firewall_forwarded_tcp_ports: []
 firewall_forwarded_udp_ports: []

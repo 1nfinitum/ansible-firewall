@@ -2,7 +2,8 @@ Ansible Role: Firewall
 =========
 [![Build Status](https://travis-ci.org/tenequm/ansible-firewall.svg?branch=master)](https://travis-ci.org/tenequm/ansible-firewall)
 
-This role applies basic firewall configurations for Ubuntu 16.04 LTS and disables its `ufw` service.
+This role applies basic firewall configurations for Ubuntu/Debian and disables `ufw` service if installed.
+This role assumes you are gathering facts during play.
 
 After applying this role, you will have `firewall` init service, that can be controlled with the standard `service firewall [start|stop|restart|status]` commands.
 
@@ -18,11 +19,19 @@ This role requires only root access for accomplishing its operations, so either 
 
 Role Variables
 --------------
+Drop traffic only when connecting to public interface (defaults to true):
+```
+firewall_drop_only_pub: true
+```
+Name of public interface (defaults to `ansible_default_ipv4.interface` variable achieved from gathered facts), used when `firewall_drop_only_pub` is set to `true`:
+```
+firewall_pub_interface: "{{ ansible_default_ipv4.interface }}"
+```
 List of open TCP/UDP ports for incoming traffic:
 ```
 firewall_allowed_tcp_ports:
-  - 22
   - 80
+  - 443
   …
 firewall_allowed_udp_ports: []
 ```
